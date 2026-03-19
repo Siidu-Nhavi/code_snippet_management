@@ -10,7 +10,17 @@ import type {
   User
 } from "./types";
 
-const API_URL = import.meta.env.VITE_API_URL ?? "https://code-snippet-management.onrender.com/api";
+function resolveApiUrl(): string {
+  const configuredUrl = import.meta.env.VITE_API_URL?.trim();
+
+  if (configuredUrl) {
+    return configuredUrl.replace(/\/+$/, "");
+  }
+
+  return "/api";
+}
+
+const API_URL = resolveApiUrl();
 
 class ApiError extends Error {
   readonly status: number;
@@ -36,10 +46,17 @@ async function request<T>(
     headers.set("Authorization", `Bearer ${token}`);
   }
 
-  const response = await fetch(`${API_URL}${path}`, {
-    ...options,
-    headers
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(`${API_URL}${path}`, {
+      ...options,
+      headers
+    });
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : "Network error";
+    throw new ApiError(0, `Network error: ${errorMessage}`);
+  }
 
   const isJson = response.headers.get("content-type")?.includes("application/json");
   const data = isJson ? await response.json() : null;

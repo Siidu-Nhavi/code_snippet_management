@@ -18,6 +18,8 @@ Create `client/.env.production`:
 VITE_API_URL="https://code-snippet-management.onrender.com/api"
 ```
 
+If `VITE_API_URL` is omitted, the frontend now uses `/api` by default. Local Vite dev proxies `/api` to `http://127.0.0.1:4001`, and Vercel rewrites `/api/*` to the Render backend.
+
 ### Backend
 
 Render environment variables:
@@ -26,7 +28,7 @@ Render environment variables:
 DATABASE_URL="file:/var/data/prod.db"
 JWT_SECRET="replace-with-a-long-random-secret"
 PORT=4000
-CLIENT_ORIGIN="https://code-snippet-management-server.vercel.app"
+CLIENT_ORIGINS="https://code-snippet-management-server.vercel.app,http://localhost:5173"
 ```
 
 If you keep SQLite on Render, attach a persistent disk and point `DATABASE_URL` to that disk path.
@@ -56,7 +58,7 @@ VITE_API_URL=https://code-snippet-management.onrender.com/api
 DATABASE_URL=file:/var/data/prod.db
 JWT_SECRET=replace-with-a-long-random-secret
 PORT=4000
-CLIENT_ORIGIN=https://code-snippet-management-server.vercel.app
+CLIENT_ORIGINS=https://code-snippet-management-server.vercel.app,http://localhost:5173
 ```
 
 4. Attach a persistent disk if you are still using SQLite.
@@ -83,8 +85,11 @@ Start frontend:
 npm run dev:client
 ```
 
+Vite now proxies `/api/*` to the backend automatically, so the default auth flow works locally even without setting `VITE_API_URL`.
+
 ## Notes
 
 - The frontend API fallback is configured in `client/src/api.ts`.
-- The backend CORS origin fallback is configured in `server/src/config.ts`.
+- The Vite dev proxy is configured in `client/vite.config.ts`.
+- The backend CORS origin allowlist is configured in `server/src/config.ts`.
 - For production, PostgreSQL or MongoDB Atlas is a better long-term choice than SQLite on Render.

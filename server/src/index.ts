@@ -14,7 +14,14 @@ const app = express();
 
 app.use(
   cors({
-    origin: config.clientOrigin,
+    origin(origin, callback) {
+      if (config.isAllowedClientOrigin(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error(`Origin ${origin ?? "unknown"} is not allowed by CORS.`));
+    },
     credentials: true
   })
 );
